@@ -1,1 +1,239 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>शुभ दिवाळी — Rajkumar Deshpande</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #080214;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #ffffff;
+        }
+        #app-container {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            border: 4px solid #ffb703;
+            box-shadow: inset 0 0 20px #ff0055, 0 0 15px #ffe600;
+        }
+
+        /* LED String Light Borders */
+        .led-border {
+            position: absolute;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .led-top { top: 0; left: 0; right: 0; height: 8px; flex-direction: row; }
+        .led-bottom { bottom: 0; left: 0; right: 0; height: 8px; flex-direction: row; }
+        .led-left { top: 0; bottom: 0; left: 0; width: 8px; flex-direction: column; }
+        .led-right { top: 0; bottom: 0; right: 0; width: 8px; flex-direction: column; }
+
+        .led-bulb {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            animation: ledBlink 1.2s infinite alternate;
+        }
+        @keyframes ledBlink {
+            0% { opacity: 0.3; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.3); }
+        }
+
+        header {
+            background: linear-gradient(180deg, rgba(35, 5, 50, 0.95) 0%, rgba(15, 2, 25, 0.95) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 4px 2px 4px;
+            border-bottom: 1.5px solid #ffe600;
+            z-index: 10;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .diwali-title {
+            font-size: 0.95rem;
+            font-weight: 900;
+            text-align: center;
+            color: #ffffff;
+            text-shadow: 0 0 5px #fff, 0 0 10px #ffe600, 0 0 20px #ff5e00, 0 0 30px #ff0055;
+            animation: neonPulse 1.5s infinite alternate;
+        }
+        @keyframes neonPulse {
+            0% { text-shadow: 0 0 5px #fff, 0 0 10px #ffe600, 0 0 20px #ff5e00, 0 0 30px #ff0055; }
+            100% { text-shadow: 0 0 10px #fff, 0 0 20px #00f2fe, 0 0 30px #39ff14, 0 0 40px #ff0055; }
+        }
+        .marathi-sub {
+            font-size: 0.7rem;
+            color: #ffe600;
+            font-weight: 700;
+            margin-top: 1px;
+            text-shadow: 0 0 6px rgba(255, 230, 0, 0.8);
+        }
+
+        /* Visitor Counter Badge */
+        .visitor-badge {
+            position: absolute;
+            top: 4px; right: 8px;
+            font-size: 0.6rem;
+            font-weight: 800;
+            color: #00f2fe;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 2px 6px;
+            border-radius: 8px;
+            border: 1px solid #00f2fe;
+            box-shadow: 0 0 6px #00f2fe;
+        }
+
+        /* Compact Toolbar */
+        .toolbar {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            padding: 3px 4px;
+            background: rgba(15, 2, 25, 0.95);
+            border-bottom: 1px solid rgba(255, 230, 0, 0.3);
+            z-index: 10;
+            flex-shrink: 0;
+        }
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #ffe600;
+            color: #fff;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 4px rgba(255, 230, 0, 0.3);
+        }
+        .btn.active {
+            background: linear-gradient(135deg, #ff5e00 0%, #ff0055 100%);
+            border-color: #ffe600;
+            box-shadow: 0 0 8px #ff0055;
+        }
+
+        #canvas-wrapper {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            background: radial-gradient(circle at center, #260540 0%, #080214 100%);
+            touch-action: none;
+            overflow: hidden;
+        }
+        canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+            touch-action: none;
+        }
+        #bg-canvas { z-index: 1; pointer-events: none; }
+        #paintCanvas { z-index: 2; }
+        #fx-canvas { z-index: 3; pointer-events: none; }
+
+        /* Interactive Intro Overlay */
+        #intro-overlay {
+            position: absolute;
+            top: 40%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 15;
+            pointer-events: none;
+            color: #00f2fe;
+            font-size: 0.85rem;
+            font-weight: 800;
+            text-align: center;
+            padding: 8px 14px;
+            border-radius: 16px;
+            background: rgba(10, 2, 25, 0.85);
+            border: 1.5px solid #00f2fe;
+            box-shadow: 0 0 15px #00f2fe;
+            animation: introGlow 1.5s infinite alternate;
+            transition: opacity 0.5s ease;
+        }
+        @keyframes introGlow {
+            0% { transform: translate(-50%, -50%) scale(0.98); box-shadow: 0 0 10px #00f2fe; }
+            100% { transform: translate(-50%, -50%) scale(1.04); box-shadow: 0 0 22px #00f2fe, 0 0 35px #ff0055; }
+        }
+
+        .cracker-bar {
+            background: linear-gradient(0deg, rgba(25, 3, 40, 0.95) 0%, rgba(10, 2, 20, 0.95) 100%);
+            display: flex;
+            justify-content: space-around;
+            padding: 5px 3px 6px 3px;
+            border-top: 1.5px solid #ffe600;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+        .cracker-btn {
+            background: linear-gradient(135deg, #4a0b75 0%, #1e0333 100%);
+            border: 1.5px solid #ffb703;
+            color: #ffe600;
+            padding: 5px 2px;
+            border-radius: 8px;
+            font-size: 0.62rem;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+            flex: 1;
+            margin: 0 2px;
+            cursor: pointer;
+            box-shadow: 0 0 6px rgba(255, 183, 3, 0.3);
+        }
+        .cracker-btn:active {
+            transform: scale(0.92);
+            background: #ff0055;
+            color: #fff;
+            box-shadow: 0 0 12px #ff0055;
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <!-- LED String Light Borders -->
+        <div class="led-border led-top" id="led-top"></div>
+        <div class="led-border led-bottom" id="led-bottom"></div>
+        <div class="led-border led-left" id="led-left"></div>
+        <div class="led-border led-right" id="led-right"></div>
+
+        <header>
+            <div class="diwali-title">✨ Happy Diwali from Rajkumar Deshpande ✨</div>
+            <div class="marathi-sub">शुभ दीपावली! सुंदर रांगोळी काढा व फटाके उडवा</div>
+            <div class="visitor-badge" id="visitor-count">भेटी: 533</div>
+        </header>
+
+        <!-- 4 Compact Toolbar Options (Sangeet button removed) -->
+        <div class="toolbar">
+            <button class="btn" id="btn-clear">🧹 साफ करा</button>
+            <button class="btn" id="btn-symm">12 अक्ष (Axes)</button>
+            <button class="btn" id="btn-color">रंग: रंगबिरंगी (Neon)</button>
+            <button class="btn active" id="btn-fx">🎆 फटाके: ऑन</button>
+        </div>
+
+        <div id="canvas-wrapper">
+            <div id="intro-overlay">स्क्रीनवरून बोट फिरवा आणि रांगोळी काढा! 🪔✨</div>
+            <canvas id="bg-canvas"></canvas>
+            <canvas id="paintCanvas"></canvas>
+            <canvas id="fx-canvas"></canvas>
+        </div>
+
+        <div class="cracker-bar">
+            
 
