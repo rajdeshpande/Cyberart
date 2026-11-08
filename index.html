@@ -1,1 +1,799 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>शुभ दिवाळी — Rajkumar Deshpande</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #080214;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #ffffff;
+        }
+        #app-container {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            border: 4px solid #ffb703;
+            box-shadow: inset 0 0 20px #ff0055, 0 0 15px #ffe600;
+        }
+
+        /* LED String Light Border System */
+        .led-border {
+            position: absolute;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .led-top { top: 0; left: 0; right: 0; height: 10px; flex-direction: row; }
+        .led-bottom { bottom: 0; left: 0; right: 0; height: 10px; flex-direction: row; }
+        .led-left { top: 0; bottom: 0; left: 0; width: 10px; flex-direction: column; }
+        .led-right { top: 0; bottom: 0; right: 0; width: 10px; flex-direction: column; }
+
+        .led-bulb {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            animation: ledBlink 1.2s infinite alternate;
+        }
+        @keyframes ledBlink {
+            0% { opacity: 0.3; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.4); }
+        }
+
+        header {
+            background: linear-gradient(180deg, rgba(35, 5, 50, 0.95) 0%, rgba(15, 2, 25, 0.95) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 4px 4px 4px;
+            border-bottom: 1.5px solid #ffe600;
+            z-index: 10;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .diwali-title {
+            font-size: 0.98rem;
+            font-weight: 900;
+            text-align: center;
+            color: #ffffff;
+            text-shadow: 0 0 5px #fff, 0 0 10px #ffe600, 0 0 20px #ff5e00, 0 0 30px #ff0055;
+            animation: neonPulse 1.5s infinite alternate;
+        }
+        @keyframes neonPulse {
+            0% { text-shadow: 0 0 5px #fff, 0 0 10px #ffe600, 0 0 20px #ff5e00, 0 0 30px #ff0055; }
+            100% { text-shadow: 0 0 10px #fff, 0 0 20px #00f2fe, 0 0 30px #39ff14, 0 0 40px #ff0055; }
+        }
+        .marathi-sub {
+            font-size: 0.72rem;
+            color: #ffe600;
+            font-weight: 700;
+            margin-top: 1px;
+            text-shadow: 0 0 6px rgba(255, 230, 0, 0.8);
+        }
+
+        /* Visitor Counter Badge */
+        .visitor-badge {
+            position: absolute;
+            top: 4px; right: 8px;
+            font-size: 0.6rem;
+            font-weight: 800;
+            color: #00f2fe;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 2px 6px;
+            border-radius: 8px;
+            border: 1px solid #00f2fe;
+            box-shadow: 0 0 6px #00f2fe;
+        }
+
+        /* Compact Toolbar */
+        .toolbar {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            padding: 4px;
+            background: rgba(15, 2, 25, 0.95);
+            border-bottom: 1px solid rgba(255, 230, 0, 0.3);
+            z-index: 10;
+            flex-shrink: 0;
+        }
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #ffe600;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 4px rgba(255, 230, 0, 0.3);
+        }
+        .btn.active {
+            background: linear-gradient(135deg, #ff5e00 0%, #ff0055 100%);
+            border-color: #ffe600;
+            box-shadow: 0 0 8px #ff0055;
+        }
+
+        #canvas-wrapper {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            background: radial-gradient(circle at center, #260540 0%, #080214 100%);
+            touch-action: none;
+            overflow: hidden;
+        }
+        canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+            touch-action: none;
+        }
+        #bg-canvas { z-index: 1; pointer-events: none; }
+        #paintCanvas { z-index: 2; }
+        #fx-canvas { z-index: 3; pointer-events: none; }
+
+        /* Interactive Intro Overlay */
+        #intro-overlay {
+            position: absolute;
+            top: 40%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 15;
+            pointer-events: none;
+            color: #00f2fe;
+            font-size: 0.88rem;
+            font-weight: 800;
+            text-align: center;
+            padding: 8px 14px;
+            border-radius: 16px;
+            background: rgba(10, 2, 25, 0.88);
+            border: 1.5px solid #00f2fe;
+            box-shadow: 0 0 15px #00f2fe;
+            animation: introGlow 1.5s infinite alternate;
+            transition: opacity 0.5s ease;
+        }
+        @keyframes introGlow {
+            0% { transform: translate(-50%, -50%) scale(0.98); box-shadow: 0 0 10px #00f2fe; }
+            100% { transform: translate(-50%, -50%) scale(1.04); box-shadow: 0 0 22px #00f2fe, 0 0 35px #ff0055; }
+        }
+
+        .cracker-bar {
+            background: linear-gradient(0deg, rgba(25, 3, 40, 0.95) 0%, rgba(10, 2, 20, 0.95) 100%);
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 3px 8px 3px;
+            border-top: 1.5px solid #ffe600;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+        .cracker-btn {
+            background: linear-gradient(135deg, #4a0b75 0%, #1e0333 100%);
+            border: 1.5px solid #ffb703;
+            color: #ffe600;
+            padding: 6px 2px;
+            border-radius: 8px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+            flex: 1;
+            margin: 0 2px;
+            cursor: pointer;
+            box-shadow: 0 0 6px rgba(255, 183, 3, 0.3);
+        }
+        .cracker-btn:active {
+            transform: scale(0.92);
+            background: #ff0055;
+            color: #fff;
+            box-shadow: 0 0 12px #ff0055;
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <!-- LED String Light Borders -->
+        <div class="led-border led-top" id="led-top"></div>
+        <div class="led-border led-bottom" id="led-bottom"></div>
+        <div class="led-border led-left" id="led-left"></div>
+        <div class="led-border led-right" id="led-right"></div>
+
+        <header>
+            <div class="diwali-title">✨ Happy Diwali from Rajkumar Deshpande ✨</div>
+            <div class="marathi-sub">शुभ दीपावली! सुंदर रांगोळी काढा व फटाके उडवा</div>
+            <div class="visitor-badge" id="visitor-count">भेटी: 533</div>
+        </header>
+
+        <!-- Compact Toolbar (3 Options + 1 Toggle) -->
+        <div class="toolbar">
+            <button class="btn" id="btn-clear">🧹 साफ करा</button>
+            <button class="btn" id="btn-symm">12 अक्ष (Axes)</button>
+            <button class="btn" id="btn-color">रंग: रंगबिरंगी (Neon)</button>
+            <button class="btn active" id="btn-fx">🎆 फटाके: ऑन</button>
+        </div>
+
+        <div id="canvas-wrapper">
+            <div id="intro-overlay">स्क्रीनवरून बोट फिरवा आणि रांगोळी काढा! 🪔✨</div>
+            <canvas id="bg-canvas"></canvas>
+            <canvas id="paintCanvas"></canvas>
+            <canvas id="fx-canvas"></canvas>
+        </div>
+
+        <div class="cracker-bar">
+            <button class="cracker-btn" onclick="triggerCracker('sparkler')">✨<span>फुलबाजा</span></button>
+            <button class="cracker-btn" onclick="triggerCracker('chakra')">🌀<span>भुईचक्र</span></button>
+            <button class="cracker-btn" onclick="triggerCracker('anar')">🎆<span>अनार</span></button>
+            <button class="cracker-btn" onclick="triggerCracker('rocket')">🚀<span>रॉकेट</span></button>
+        </div>
+    </div>
+
+    <script>
+        // Visitor Counter (+2 per load)
+        function initVisitorCounter() {
+            let count = localStorage.getItem('diwali_visitor_count');
+            if (!count) {
+                count = 533;
+            } else {
+                count = parseInt(count, 10) + 2;
+            }
+            localStorage.setItem('diwali_visitor_count', count);
+            const el = document.getElementById('visitor-count');
+            if (el) el.textContent = `भेटी: ${count}`;
+        }
+        initVisitorCounter();
+
+        // Multi-Colored LED Lights
+        const ledColors = ['#ff0055', '#ffe600', '#00f2fe', '#39ff14', '#ff5e00', '#e0aaff'];
+        function buildLEDs(containerId, count) {
+            const el = document.getElementById(containerId);
+            if (!el) return;
+            el.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                const bulb = document.createElement('div');
+                bulb.className = 'led-bulb';
+                const c = ledColors[i % ledColors.length];
+                bulb.style.backgroundColor = c;
+                bulb.style.boxShadow = `0 0 7px ${c}, 0 0 11px ${c}`;
+                bulb.style.animationDelay = `${(i * 0.15) % 1.2}s`;
+                el.appendChild(bulb);
+            }
+        }
+        buildLEDs('led-top', 16);
+        buildLEDs('led-bottom', 16);
+        buildLEDs('led-left', 12);
+        buildLEDs('led-right', 12);
+
+        const canvas = document.getElementById('paintCanvas');
+        const ctx = canvas.getContext('2d');
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        const fxCanvas = document.getElementById('fx-canvas');
+        const fxCtx = fxCanvas.getContext('2d');
+        const wrapper = document.getElementById('canvas-wrapper');
+        const introOverlay = document.getElementById('intro-overlay');
+
+        let isDrawing = false;
+        let firstTouch = false;
+        let fxEnabled = true;
+        let lastX = 0, lastY = 0;
+        let axesList = [8, 12, 16, 24, 6];
+        let axesIdx = 1;
+        let axes = axesList[axesIdx];
+        
+        let colorModes = ['vivid', 'gold', 'flame', 'magenta'];
+        let colorIdx = 0;
+
+        let audioCtx = null;
+        let ambientTimer = null;
+
+        const vividPalette = ['#00f2fe', '#ffe600', '#39ff14', '#ff007f', '#ff5e00', '#00ffcc', '#bf00ff'];
+
+        // Twinkling Background Stars
+        let stars = [];
+        function initStars() {
+            stars = [];
+            const w = bgCanvas.width || window.innerWidth;
+            const h = bgCanvas.height || window.innerHeight;
+            for(let i = 0; i < 90; i++) {
+                stars.push({
+                    x: Math.random() * w,
+                    y: Math.random() * h,
+                    size: Math.random() * 2.5 + 1,
+                    color: vividPalette[Math.floor(Math.random() * vividPalette.length)],
+                    alpha: Math.random(),
+                    speed: Math.random() * 0.04 + 0.01
+                });
+            }
+        }
+
+        // Diamond-Shaped Akash Kandil
+        function drawKandil(ctx, x, y, scale) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scale, scale);
+
+            ctx.strokeStyle = '#ffe600';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(0, -60); ctx.lineTo(0, -30); ctx.stroke();
+
+            ctx.fillStyle = '#ff0055';
+            ctx.strokeStyle = '#ffe600';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, -30); ctx.lineTo(25, 0); ctx.lineTo(0, 30); ctx.lineTo(-25, 0);
+            ctx.closePath(); ctx.fill(); ctx.stroke();
+
+            ctx.fillStyle = '#ffe600';
+            ctx.beginPath();
+            ctx.moveTo(0, -15); ctx.lineTo(12, 0); ctx.lineTo(0, 15); ctx.lineTo(-12, 0);
+            ctx.closePath(); ctx.fill();
+
+            const colors = ['#ff5e00', '#ffe600', '#00f2fe'];
+            for(let i = -2; i <= 2; i++) {
+                ctx.strokeStyle = colors[Math.abs(i) % colors.length];
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(i * 10, 30); ctx.lineTo(i * 12, 70);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // Traditional Diya with Flame Glow
+        function drawDiya(ctx, x, y, scale, glowPulse) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scale, scale);
+
+            ctx.fillStyle = '#d4af37';
+            ctx.strokeStyle = '#ff5e00';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI, false); ctx.closePath();
+            ctx.fill(); ctx.stroke();
+
+            ctx.shadowBlur = 15 + glowPulse * 10;
+            ctx.shadowColor = '#ff5e00';
+
+            ctx.fillStyle = '#ff5e00';
+            ctx.beginPath();
+            ctx.moveTo(-10, -5); 
+            ctx.quadraticCurveTo(0, -35 - glowPulse * 5, 0, -45 - glowPulse * 8); 
+            ctx.quadraticCurveTo(0, -35 - glowPulse * 5, 10, -5);
+            ctx.closePath(); ctx.fill();
+
+            ctx.fillStyle = '#ffe600';
+            ctx.beginPath();
+            ctx.moveTo(-5, -5); 
+            ctx.quadraticCurveTo(0, -25, 0, -32 - glowPulse * 4); 
+            ctx.quadraticCurveTo(0, -25, 5, -5);
+            ctx.closePath(); ctx.fill();
+
+            ctx.restore();
+        }
+
+        let pulseTime = 0;
+        function drawBackground() {
+            const w = bgCanvas.width;
+            const h = bgCanvas.height;
+            bgCtx.clearRect(0, 0, w, h);
+
+            pulseTime += 0.05;
+            const glowPulse = Math.sin(pulseTime) * 0.5 + 0.5;
+
+            for(let s of stars) {
+                s.alpha += s.speed;
+                if(s.alpha > 1 || s.alpha < 0) s.speed = -s.speed;
+                bgCtx.fillStyle = s.color;
+                bgCtx.globalAlpha = Math.abs(s.alpha);
+                bgCtx.shadowBlur = 6;
+                bgCtx.shadowColor = s.color;
+                bgCtx.beginPath();
+                bgCtx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                bgCtx.fill();
+            }
+            bgCtx.globalAlpha = 1.0;
+            bgCtx.shadowBlur = 0;
+
+            drawKandil(bgCtx, 40, 45, 0.65);
+            drawKandil(bgCtx, w - 40, 45, 0.65);
+
+            drawDiya(bgCtx, w * 0.22, h - 30, 0.6, glowPulse * 0.4);
+            drawDiya(bgCtx, w * 0.50, h - 35, 0.9, glowPulse);
+            drawDiya(bgCtx, w * 0.78, h - 30, 0.6, glowPulse * 0.4);
+
+            requestAnimationFrame(drawBackground);
+        }
+
+        // Web Audio Synthesizer: Louder Cracker Sounds & Soft Ambient Soundscape
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playTempleBell(freq) {
+            if (!audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.4);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1.4);
+            } catch(e) {}
+        }
+
+        function startPleasantAmbient() {
+            if (ambientTimer) return;
+            const ragaNotes = [293.66, 329.63, 392.00, 440.00, 493.88, 587.33, 659.25];
+            ambientTimer = setInterval(() => {
+                initAudio();
+                const note = ragaNotes[Math.floor(Math.random() * ragaNotes.length)];
+                playTempleBell(note);
+            }, 2000);
+        }
+
+        function playTone(freq, type='sine', duration=0.3, vol=0.35) {
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        function playSparkleSound(y) {
+            const scale = [293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25];
+            const noteIdx = Math.floor(((bgCanvas.height - y) / bgCanvas.height) * scale.length);
+            const freq = scale[Math.min(Math.max(noteIdx, 0), scale.length - 1)];
+            playTone(freq, 'sine', 0.2, 0.12);
+        }
+
+        // Cracker FX Engine (With Launching Rocket)
+        let fxParticles = [];
+        let activeProps = [];
+
+        function animateFX() {
+            fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+
+            if (fxEnabled) {
+                for (let pr = activeProps.length - 1; pr >= 0; pr--) {
+                    let prop = activeProps[pr];
+                    prop.life -= 0.016;
+
+                    if (prop.type === 'anar') {
+                        fxCtx.save();
+                        fxCtx.fillStyle = '#ff5e00';
+                        fxCtx.strokeStyle = '#ffe600';
+                        fxCtx.lineWidth = 2;
+                        fxCtx.beginPath();
+                        fxCtx.moveTo(prop.x - 18, prop.y);
+                        fxCtx.lineTo(prop.x + 18, prop.y);
+                        fxCtx.lineTo(prop.x, prop.y - 40);
+                        fxCtx.closePath();
+                        fxCtx.fill(); fxCtx.stroke();
+                        fxCtx.restore();
+
+                        for(let i = 0; i < 10; i++) {
+                            let angle = -Math.PI / 2 + (Math.random() - 0.5) * 0.7;
+                            let speed = Math.random() * 13 + 4;
+                            fxParticles.push({
+                                x: prop.x, y: prop.y - 40,
+                                vx: Math.cos(angle) * speed,
+                                vy: Math.sin(angle) * speed,
+                                size: Math.random() * 3.5 + 1.5,
+                                color: Math.random() > 0.3 ? '#ffe600' : '#ff5e00',
+                                alpha: 1, decay: 0.015, gravity: 0.2, bounce: true
+                            });
+                        }
+
+                    } else if (prop.type === 'chakra') {
+                        prop.angle += 0.35;
+                        fxCtx.save();
+                        fxCtx.translate(prop.x, prop.y);
+                        fxCtx.rotate(prop.angle);
+                        fxCtx.fillStyle = '#00f2fe';
+                        fxCtx.strokeStyle = '#ffe600';
+                        fxCtx.lineWidth = 3;
+                        fxCtx.beginPath(); fxCtx.arc(0, 0, 20, 0, Math.PI * 2); fxCtx.fill(); fxCtx.stroke();
+                        fxCtx.restore();
+
+                        for(let i = 0; i < 7; i++) {
+                            let a = prop.angle + (i * Math.PI / 3.5);
+                            let speed = Math.random() * 7 + 3;
+                            fxParticles.push({
+                                x: prop.x, y: prop.y,
+                                vx: Math.cos(a) * speed,
+                                vy: Math.sin(a) * speed,
+                                size: Math.random() * 3.5 + 2,
+                                color: vividPalette[Math.floor(Math.random() * vividPalette.length)],
+                                alpha: 1, decay: 0.018, gravity: 0
+                            });
+                        }
+
+                    } else if (prop.type === 'rocket') {
+                        prop.y += prop.vy;
+
+                        // Flame Tail
+                        fxParticles.push({
+                            x: prop.x + (Math.random() - 0.5) * 4,
+                            y: prop.y + 15,
+                            vx: (Math.random() - 0.5) * 1.5,
+                            vy: Math.random() * 3 + 2,
+                            size: Math.random() * 4 + 2,
+                            color: '#ff5e00',
+                            alpha: 1, decay: 0.05, gravity: 0.05
+                        });
+
+                        fxCtx.fillStyle = '#ff0055';
+                        fxCtx.shadowBlur = 10;
+                        fxCtx.shadowColor = '#ffe600';
+                        fxCtx.beginPath();
+                        fxCtx.arc(prop.x, prop.y, 6, 0, Math.PI * 2);
+                        fxCtx.fill();
+
+                        // Detonation at Apex
+                        if (prop.y <= prop.targetY) {
+                            for(let i = 0; i < 220; i++) {
+                                let a = Math.random() * Math.PI * 2;
+                                let speed = Math.random() * 12 + 2;
+                                fxParticles.push({
+                                    x: prop.x, y: prop.y,
+                                    vx: Math.cos(a) * speed,
+                                    vy: Math.sin(a) * speed,
+                                    size: Math.random() * 4.5 + 2,
+                                    color: vividPalette[Math.floor(Math.random() * vividPalette.length)],
+                                    alpha: 1, decay: 0.012, gravity: 0.08
+                                });
+                            }
+                            playTone(85, 'sawtooth', 0.8, 0.5);
+                            setTimeout(() => playTone(45, 'sine', 1.0, 0.6), 60);
+                            activeProps.splice(pr, 1);
+                            continue;
+                        }
+                    }
+
+                    if (prop.life <= 0) activeProps.splice(pr, 1);
+                }
+
+                const groundY = fxCanvas.height - 20;
+                for(let i = fxParticles.length - 1; i >= 0; i--) {
+                    let p = fxParticles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += p.gravity || 0.05;
+                    p.alpha -= p.decay;
+
+                    if (p.bounce && p.y >= groundY) {
+                        p.y = groundY;
+                        p.vy = -p.vy * 0.4;
+                        p.vx *= 0.7;
+                    }
+
+                    if(p.alpha <= 0) {
+                        fxParticles.splice(i, 1);
+                        continue;
+                    }
+                    fxCtx.fillStyle = p.color;
+                    fxCtx.globalAlpha = p.alpha;
+                    fxCtx.shadowBlur = 8;
+                    fxCtx.shadowColor = p.color;
+                    fxCtx.beginPath();
+                    fxCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    fxCtx.fill();
+                }
+                fxCtx.globalAlpha = 1.0;
+                fxCtx.shadowBlur = 0;
+            }
+
+            requestAnimationFrame(animateFX);
+        }
+
+        function triggerCracker(type) {
+            initAudio();
+            startPleasantAmbient();
+            const cx = fxCanvas.width / 2;
+            const cy = fxCanvas.height / 2;
+
+            if (type === 'sparkler') {
+                for(let i = 0; i < 130; i++) {
+                    let angle = Math.random() * Math.PI * 2;
+                    let speed = Math.random() * 8 + 1;
+                    fxParticles.push({
+                        x: cx, y: cy,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        size: Math.random() * 4 + 1.5,
+                        color: vividPalette[Math.floor(Math.random() * vividPalette.length)],
+                        alpha: 1, decay: 0.014, gravity: 0.04
+                    });
+                }
+                for(let t=0; t<12; t++) setTimeout(() => playTone(650 + Math.random()*850, 'sawtooth', 0.12, 0.3), t*50);
+
+            } else if (type === 'chakra') {
+                activeProps.push({
+                    type: 'chakra',
+                    x: cx, y: cy,
+                    angle: 0,
+                    life: 2.8
+                });
+                for(let t=0; t<15; t++) setTimeout(() => playTone(240 + t*90, 'sine', 0.15, 0.32), t*40);
+
+            } else if (type === 'anar') {
+                activeProps.push({
+                    type: 'anar',
+                    x: cx, y: fxCanvas.height - 35,
+                    life: 3.5
+                });
+                for(let t=0; t<16; t++) setTimeout(() => playTone(300 + Math.random()*600, 'square', 0.14, 0.28), t*50);
+
+            } else if (type === 'rocket') {
+                const rx = Math.random() * (fxCanvas.width * 0.6) + (fxCanvas.width * 0.2);
+                activeProps.push({
+                    type: 'rocket',
+                    x: rx, y: fxCanvas.height - 10,
+                    vy: -11,
+                    targetY: fxCanvas.height * 0.2 + Math.random() * 70,
+                    life: 2.0
+                });
+                for(let t=0; t<12; t++) setTimeout(() => playTone(380 + t*80, 'triangle', 0.1, 0.3), t*40);
+            }
+        }
+
+        function resize() {
+            const width = wrapper.clientWidth || window.innerWidth;
+            const height = wrapper.clientHeight || (window.innerHeight - 130);
+            canvas.width = width;
+            canvas.height = height;
+            bgCanvas.width = width;
+            bgCanvas.height = height;
+            fxCanvas.width = width;
+            fxCanvas.height = height;
+            initStars();
+        }
+
+        window.addEventListener('resize', resize);
+        setTimeout(resize, 50);
+
+        function getColor() {
+            const mode = colorModes[colorIdx];
+            if (mode === 'gold') return `hsl(45, 100%, ${50 + Math.random() * 20}%)`;
+            if (mode === 'flame') return `hsl(${15 + Math.random() * 25}, 100%, 50%)`;
+            if (mode === 'magenta') return `hsl(300, 100%, 60%)`;
+            return vividPalette[Math.floor(Math.random() * vividPalette.length)];
+        }
+
+        function drawSymmetry(x1, y1, x2, y2) {
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const angleStep = (Math.PI * 2) / axes;
+
+            ctx.lineWidth = 3.5;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = getColor();
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = ctx.strokeStyle;
+
+            for (let i = 0; i < axes; i++) {
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(angleStep * i);
+
+                ctx.beginPath();
+                ctx.moveTo(x1 - cx, y1 - cy);
+                ctx.lineTo(x2 - cx, y2 - cy);
+                ctx.stroke();
+
+                ctx.scale(1, -1);
+                ctx.beginPath();
+                ctx.moveTo(x1 - cx, y1 - cy);
+                ctx.lineTo(x2 - cx, y2 - cy);
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches ? e.touches[0] : e;
+            return {
+                x: touch.clientX - rect.left,
+                y: touch.clientY - rect.top
+            };
+        }
+
+        function handleStart(e) {
+            e.preventDefault();
+            initAudio();
+            startPleasantAmbient();
+
+            if (!firstTouch) {
+                firstTouch = true;
+                if (introOverlay) introOverlay.style.opacity = '0';
+            }
+
+            isDrawing = true;
+            const pos = getPos(e);
+            lastX = pos.x;
+            lastY = pos.y;
+            playSparkleSound(pos.y);
+        }
+
+        function handleMove(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const pos = getPos(e);
+            drawSymmetry(lastX, lastY, pos.x, pos.y);
+            playSparkleSound(pos.y);
+            lastX = pos.x;
+            lastY = pos.y;
+        }
+
+        function handleEnd() { isDrawing = false; }
+
+        canvas.addEventListener('touchstart', handleStart, {passive: false});
+        canvas.addEventListener('touchmove', handleMove, {passive: false});
+        canvas.addEventListener('touchend', handleEnd);
+        canvas.addEventListener('mousedown', handleStart);
+        canvas.addEventListener('mousemove', handleMove);
+        window.addEventListener('mouseup', handleEnd);
+
+        // Toolbar Button Events
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        document.getElementById('btn-symm').addEventListener('click', (e) => {
+            axesIdx = (axesIdx + 1) % axesList.length;
+            axes = axesList[axesIdx];
+            e.target.textContent = `${axes} अक्ष (Axes)`;
+        });
+
+        document.getElementById('btn-color').addEventListener('click', (e) => {
+            colorIdx = (colorIdx + 1) % colorModes.length;
+            const names = {'vivid': 'रंगबिरंगी (Neon)', 'gold': 'दीप (Gold)', 'flame': 'ज्वाला (Flame)', 'magenta': 'गुलाबी (Magenta)'};
+            e.target.textContent = `रंग: ${names[colorModes[colorIdx]]}`;
+        });
+
+        document.getElementById('btn-fx').addEventListener('click', (e) => {
+            fxEnabled = !fxEnabled;
+            e.target.textContent = fxEnabled ? '🎆 फटाके: ऑन' : '🎆 फटाके: ऑफ';
+            e.target.classList.toggle('active', fxEnabled);
+        });
+
+        requestAnimationFrame(drawBackground);
+        requestAnimationFrame(animateFX);
+    </script>
+</body>
+</html>
 
